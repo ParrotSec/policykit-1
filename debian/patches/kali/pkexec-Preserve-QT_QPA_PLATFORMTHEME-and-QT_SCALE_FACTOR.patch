@@ -1,0 +1,25 @@
+From: Arnaud Rebillout <arnaudr@kali.org>
+Date: Wed, 24 Mar 2021 18:54:24 +0700
+Subject: [PATCH] pkexec: Preserve QT_QPA_PLATFORMTHEME and QT_SCALE_FACTOR in
+ environment (Fixes: #1)
+
+---
+ src/programs/pkexec.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/programs/pkexec.c b/src/programs/pkexec.c
+index 373977b..1950b1a 100644
+--- a/src/programs/pkexec.c
++++ b/src/programs/pkexec.c
+@@ -432,6 +432,8 @@ main (int argc, char *argv[])
+      */
+     "DISPLAY",
+     "XAUTHORITY",
++    "QT_QPA_PLATFORMTHEME",
++    "QT_SCALE_FACTOR",
+     NULL
+   };
+   GPtrArray *saved_env;
+-- 
+2.31.0
+

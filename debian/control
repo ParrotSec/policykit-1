@@ -1,0 +1,136 @@
+Source: policykit-1
+Section: admin
+Priority: optional
+XSBC-Original-Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.alioth.debian.org>
+Maintainer: Parrot Dev Team <team@parrotsec.org>
+Uploaders: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
+Build-Depends:
+ dbus <!nocheck>,
+ debhelper-compat (= 13),
+ gobject-introspection (>= 0.9.12-4~),
+ gtk-doc-tools,
+ intltool (>= 0.40.0),
+ libexpat1-dev,
+ libgirepository1.0-dev (>= 0.9.12),
+ libglib2.0-dev (>= 2.28.0),
+ libglib2.0-doc,
+ libgtk-3-doc,
+ libpam0g-dev,
+ libselinux1-dev [linux-any],
+ libsystemd-dev [linux-any],
+ pkg-config,
+ xsltproc,
+Rules-Requires-Root: no
+Standards-Version: 4.5.0
+Vcs-Git: https://nest.parrotsec.org/packages/debian/policykit-1.git
+Vcs-Browser: https://nest.parrotsec.org/packages/debian/policykit-1
+Homepage: https://www.freedesktop.org/wiki/Software/polkit/
+
+Package: policykit-1
+Architecture: linux-any
+Pre-Depends:
+ ${misc:Pre-Depends},
+Depends:
+ dbus,
+ default-logind | logind,
+ ${misc:Depends},
+ ${shlibs:Depends},
+Multi-Arch: foreign
+Description: framework for managing administrative policies and privileges
+ PolicyKit is an application-level toolkit for defining and handling the policy
+ that allows unprivileged processes to speak to privileged processes.
+ .
+ It is a framework for centralizing the decision making process with respect to
+ granting access to privileged operations for unprivileged (desktop)
+ applications.
+
+Package: policykit-1-doc
+Architecture: all
+Section: doc
+Depends:
+ ${misc:Depends},
+Suggests:
+ devhelp,
+Description: documentation for PolicyKit-1
+ PolicyKit is a toolkit for defining and handling the policy that
+ allows unprivileged processes to speak to privileged processes.
+ .
+ This package contains the API documentation of PolicyKit.
+
+Package: libpolkit-gobject-1-0
+Architecture: any
+Section: libs
+Pre-Depends:
+ ${misc:Pre-Depends},
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends},
+Multi-Arch: same
+Description: PolicyKit Authorization API
+ PolicyKit is a toolkit for defining and handling the policy that
+ allows unprivileged processes to speak to privileged processes.
+ .
+ This package contains a library for accessing PolicyKit.
+
+Package: libpolkit-gobject-1-dev
+Architecture: any
+Section: libdevel
+Depends:
+ gir1.2-polkit-1.0 (= ${binary:Version}),
+ libglib2.0-dev,
+ libpolkit-gobject-1-0 (= ${binary:Version}),
+ ${misc:Depends},
+Description: PolicyKit Authorization API - development files
+ PolicyKit is a toolkit for defining and handling the policy that
+ allows unprivileged processes to speak to privileged processes.
+ .
+ This package contains the development files for the library found in
+ libpolkit-gobject-1-0.
+
+Package: libpolkit-agent-1-0
+Architecture: any
+Section: libs
+Pre-Depends:
+ ${misc:Pre-Depends},
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends},
+Multi-Arch: same
+Description: PolicyKit Authentication Agent API
+ PolicyKit is a toolkit for defining and handling the policy that
+ allows unprivileged processes to speak to privileged processes.
+ .
+ This package contains a library for accessing the authentication agent.
+
+Package: libpolkit-agent-1-dev
+Architecture: any
+Section: libdevel
+Depends:
+ gir1.2-polkit-1.0 (= ${binary:Version}),
+ libpolkit-agent-1-0 (= ${binary:Version}),
+ libpolkit-gobject-1-dev,
+ ${misc:Depends},
+Description: PolicyKit Authentication Agent API - development files
+ PolicyKit is a toolkit for defining and handling the policy that
+ allows unprivileged processes to speak to privileged processes.
+ .
+ This package contains the development files for the library found in
+ libpolkit-agent-1-0.
+
+Package: gir1.2-polkit-1.0
+Section: introspection
+Architecture: any
+Depends:
+ ${gir:Depends},
+ ${misc:Depends},
+ ${shlibs:Depends},
+Provides:
+ gir1.2-polkitagent-1.0 (= ${binary:Version}),
+Description: GObject introspection data for PolicyKit
+ PolicyKit is a toolkit for defining and handling the policy that
+ allows unprivileged processes to speak to privileged processes.
+ .
+ This package contains introspection data for PolicyKit.
+ .
+ It can be used by packages using the GIRepository format to generate
+ dynamic bindings.

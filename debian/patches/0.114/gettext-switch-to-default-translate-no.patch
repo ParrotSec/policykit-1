@@ -1,0 +1,41 @@
+From: Peter Hutterer <peter.hutterer@who-t.net>
+Date: Thu, 20 Oct 2016 10:50:58 +1000
+Subject: gettext: switch to default-translate "no"
+
+The default appears to be to translate all entries. This rule never takes
+effect, the path to /action/message and /action/description is wrong (/action
+is not a root node). Since we wanted them to be translated, it doesn't matter.
+
+But it also translates all other tags (vendor, allow_any, etc.) and that
+causes polkit to be unhappy, it can't handle the various language versions of
+"no"
+
+** (polkitd:27434): WARNING **: Unknown PolkitImplicitAuthorization string
+'tidak'
+
+Switch to a default of "no" and explicitly include the message and description
+strings to be translated.
+
+The patch was modified for PolicyKit by Ondrej Holy <oholy@redhat.com>.
+
+Bug: https://bugs.freedesktop.org/show_bug.cgi?id=98366
+Origin: upstream, 0.114, commit:32e9a69c335324a53a2c0ba4e0b513fb044be0fd
+---
+ data/polkit.its | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/data/polkit.its b/data/polkit.its
+index 1312ecb..1c37e6b 100644
+--- a/data/polkit.its
++++ b/data/polkit.its
+@@ -1,7 +1,8 @@
+ <?xml version="1.0"?>
+ <its:rules xmlns:its="http://www.w3.org/2005/11/its"
+            version="2.0">
+-  <its:translateRule selector="/action/description |
+-                               /action/message"
++  <its:translateRule selector="//*" translate="no"/>
++  <its:translateRule selector="//action/description |
++                               //action/message"
+                      translate="yes"/>
+ </its:rules>

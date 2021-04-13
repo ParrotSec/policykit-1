@@ -1,0 +1,18 @@
+From: Michael Biebl <biebl@debian.org>
+Date: Sat, 11 Feb 2012 23:48:29 +0100
+Subject: Install systemd service file for polkitd.
+
+Forwarded: no, obsoleted by an upstream commit in 0.106
+---
+ data/org.freedesktop.PolicyKit1.service.in | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/data/org.freedesktop.PolicyKit1.service.in b/data/org.freedesktop.PolicyKit1.service.in
+index b6cd02b..fbceb3f 100644
+--- a/data/org.freedesktop.PolicyKit1.service.in
++++ b/data/org.freedesktop.PolicyKit1.service.in
+@@ -2,3 +2,4 @@
+ Name=org.freedesktop.PolicyKit1
+ Exec=@libexecdir@/polkitd --no-debug
+ User=root
++SystemdService=polkit.service

@@ -1,0 +1,51 @@
+From: Jan Rybar <jrybar@redhat.com>
+Date: Wed, 15 Aug 2018 18:50:56 +0200
+Subject: Elaborate message printed by polkit when disconnecting from ssh
+
+Polkit raises unnecessarily elaborate warning message when user restarts machine from ssh.
+This message was moved to debug mode.
+
+Origin: upstream, 0.116, commit:b1cc525ff5a50e20c9f921f898f0556e07675e58
+---
+ src/polkitagent/polkitagentlistener.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/polkitagent/polkitagentlistener.c b/src/polkitagent/polkitagentlistener.c
+index 0003851..e0b7b57 100644
+--- a/src/polkitagent/polkitagentlistener.c
++++ b/src/polkitagent/polkitagentlistener.c
+@@ -177,10 +177,10 @@ on_notify_authority_owner (GObject    *object,
+   owner = polkit_authority_get_owner (server->authority);
+   if (owner == NULL)
+     {
+-      g_printerr ("PolicyKit daemon disconnected from the bus.\n");
++      g_debug ("PolicyKit daemon disconnected from the bus.\n");
+ 
+       if (server->is_registered)
+-        g_printerr ("We are no longer a registered authentication agent.\n");
++        g_debug ("We are no longer a registered authentication agent.\n");
+ 
+       server->is_registered = FALSE;
+     }
+@@ -191,17 +191,17 @@ on_notify_authority_owner (GObject    *object,
+         {
+           GError *error;
+ 
+-          g_printerr ("PolicyKit daemon reconnected to bus.\n");
+-          g_printerr ("Attempting to re-register as an authentication agent.\n");
++          g_debug ("PolicyKit daemon reconnected to bus.\n");
++          g_debug ("Attempting to re-register as an authentication agent.\n");
+ 
+           error = NULL;
+           if (server_register (server, &error))
+             {
+-              g_printerr ("We are now a registered authentication agent.\n");
++              g_debug ("We are now a registered authentication agent.\n");
+             }
+           else
+             {
+-              g_printerr ("Failed to register as an authentication agent: %s\n", error->message);
++              g_debug ("Failed to register as an authentication agent: %s\n", error->message);
+               g_error_free (error);
+             }
+         }

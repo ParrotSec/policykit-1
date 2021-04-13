@@ -1,0 +1,258 @@
+From: Simon McVittie <smcv@debian.org>
+Date: Thu, 4 Jul 2019 14:12:44 +0100
+Subject: Statically link libpolkit-backend1 into polkitd
+
+Nothing else in Debian depends on that library: in principle it was
+meant to be used for pluggable polkit backends, but those never actually
+happened, and the library's API was never declared stable.
+
+Similar to part of 0f830c76 "Nuke polkitbackend library, localauthority
+backend and extension system" upstream.
+
+Signed-off-by: Simon McVittie <smcv@debian.org>
+---
+ configure.ac                      |  1 -
+ data/Makefile.am                  |  2 +-
+ data/polkit-backend-1.pc.in       | 11 ------
+ docs/man/polkit.xml               |  6 ---
+ docs/polkit/Makefile.am           |  3 --
+ docs/polkit/polkit-1-docs.xml     |  7 ----
+ docs/polkit/polkit-1-sections.txt | 80 ---------------------------------------
+ docs/polkit/polkit-1.types        |  9 -----
+ src/polkitbackend/Makefile.am     | 13 +------
+ 9 files changed, 2 insertions(+), 130 deletions(-)
+ delete mode 100644 data/polkit-backend-1.pc.in
+
+diff --git a/configure.ac b/configure.ac
+index f55ddb7..abfdd1f 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -439,7 +439,6 @@ actions/Makefile
+ data/Makefile
+ data/polkit-1
+ data/polkit-gobject-1.pc
+-data/polkit-backend-1.pc
+ data/polkit-agent-1.pc
+ src/Makefile
+ src/polkit/Makefile
+diff --git a/data/Makefile.am b/data/Makefile.am
+index 3d87439..dad7c2f 100644
+--- a/data/Makefile.am
++++ b/data/Makefile.am
+@@ -18,7 +18,7 @@ pam_DATA = polkit-1
+ endif
+ 
+ pkgconfigdir = $(libdir)/pkgconfig
+-pkgconfig_DATA = polkit-gobject-1.pc polkit-backend-1.pc polkit-agent-1.pc
++pkgconfig_DATA = polkit-gobject-1.pc polkit-agent-1.pc
+ 
+ # ----------------------------------------------------------------------------------------------------
+ 
+diff --git a/data/polkit-backend-1.pc.in b/data/polkit-backend-1.pc.in
+deleted file mode 100644
+index 7f6197d..0000000
+--- a/data/polkit-backend-1.pc.in
++++ /dev/null
+@@ -1,11 +0,0 @@
+-prefix=@prefix@
+-exec_prefix=@exec_prefix@
+-libdir=@libdir@
+-includedir=@includedir@
+-
+-Name: polkit-backend-1
+-Description: PolicyKit Backend API
+-Version: @VERSION@
+-Libs: -L${libdir} -lpolkit-backend-1
+-Cflags: -I${includedir}/polkit-1
+-Requires: polkit-gobject-1
+diff --git a/docs/man/polkit.xml b/docs/man/polkit.xml
+index 188c514..7933779 100644
+--- a/docs/man/polkit.xml
++++ b/docs/man/polkit.xml
+@@ -115,12 +115,6 @@ System Context         |                        |
+       PolicyKit D-Bus service.
+     </para>
+ 
+-    <para>
+-      PolicyKit extensions and authority backends are implemented
+-      using the
+-      <literal>libpolkit-backend-1</literal> library.
+-    </para>
+-
+     <para>
+       See the
+       <ulink url="file:///usr/share/gtk-doc/html/polkit-1/index.html">developer
+diff --git a/docs/polkit/Makefile.am b/docs/polkit/Makefile.am
+index fd7123f..c13372b 100644
+--- a/docs/polkit/Makefile.am
++++ b/docs/polkit/Makefile.am
+@@ -31,8 +31,6 @@ INCLUDES = \
+ 	$(GIO_CFLAGS)						\
+ 	-I$(top_srcdir)/src/polkit 				\
+ 	-I$(top_builddir)/src/polkit				\
+-	-I$(top_srcdir)/src/polkitbackend			\
+-	-I$(top_builddir)/src/polkitbackend			\
+ 	-I$(top_srcdir)/src/polkitagent 			\
+ 	-I$(top_builddir)/src/polkitagent			\
+ 	$(NULL)
+@@ -42,7 +40,6 @@ GTKDOC_LIBS = \
+ 	$(GLIB_LIBS)						\
+ 	$(GIO_LIBS)						\
+ 	$(top_builddir)/src/polkit/libpolkit-gobject-1.la	\
+-	$(top_builddir)/src/polkitbackend/libpolkit-backend-1.la \
+ 	$(top_builddir)/src/polkitagent/libpolkit-agent-1.la	\
+ 	$(NULL)
+ 
+diff --git a/docs/polkit/polkit-1-docs.xml b/docs/polkit/polkit-1-docs.xml
+index 21b3681..ec04b26 100644
+--- a/docs/polkit/polkit-1-docs.xml
++++ b/docs/polkit/polkit-1-docs.xml
+@@ -47,13 +47,6 @@
+     </chapter>
+   </part>
+ 
+-  <part id="ref-backend-api">
+-    <title>Backend API Reference</title>
+-    <xi:include href="xml/polkitbackendauthority.xml"/>
+-    <xi:include href="xml/polkitbackendinteractiveauthority.xml"/>
+-    <xi:include href="xml/polkitbackendlocalauthority.xml"/>
+-  </part>
+-
+   <part id="ref-authentication-agent-api">
+     <title>Authentication Agent API Reference</title>
+     <xi:include href="xml/polkitagentlistener.xml"/>
+diff --git a/docs/polkit/polkit-1-sections.txt b/docs/polkit/polkit-1-sections.txt
+index 3881004..41b37e3 100644
+--- a/docs/polkit/polkit-1-sections.txt
++++ b/docs/polkit/polkit-1-sections.txt
+@@ -290,86 +290,6 @@ POLKIT_IS_DETAILS_CLASS
+ POLKIT_DETAILS_GET_CLASS
+ </SECTION>
+ 
+-<SECTION>
+-<FILE>polkitbackendauthority</FILE>
+-<TITLE>PolkitBackendAuthority</TITLE>
+-POLKIT_BACKEND_AUTHORITY_EXTENSION_POINT_NAME
+-PolkitBackendAuthority
+-PolkitBackendAuthorityClass
+-polkit_backend_authority_get_name
+-polkit_backend_authority_get_version
+-polkit_backend_authority_get_features
+-polkit_backend_authority_check_authorization
+-polkit_backend_authority_check_authorization_finish
+-polkit_backend_authority_register_authentication_agent
+-polkit_backend_authority_unregister_authentication_agent
+-polkit_backend_authority_authentication_agent_response
+-polkit_backend_authority_enumerate_actions
+-polkit_backend_authority_enumerate_temporary_authorizations
+-polkit_backend_authority_revoke_temporary_authorizations
+-polkit_backend_authority_revoke_temporary_authorization_by_id
+-polkit_backend_authority_get
+-polkit_backend_authority_register
+-polkit_backend_authority_unregister
+-<SUBSECTION Standard>
+-POLKIT_BACKEND_AUTHORITY
+-POLKIT_BACKEND_IS_AUTHORITY
+-POLKIT_BACKEND_TYPE_AUTHORITY
+-polkit_backend_authority_get_type
+-POLKIT_BACKEND_AUTHORITY_CLASS
+-POLKIT_BACKEND_IS_AUTHORITY_CLASS
+-POLKIT_BACKEND_AUTHORITY_GET_CLASS
+-</SECTION>
+-
+-<SECTION>
+-<FILE>polkitbackendactionlookup</FILE>
+-<TITLE>PolkitBackendActionLookup</TITLE>
+-POLKIT_BACKEND_ACTION_LOOKUP_EXTENSION_POINT_NAME
+-PolkitBackendActionLookup
+-PolkitBackendActionLookupIface
+-polkit_backend_action_lookup_get_message
+-polkit_backend_action_lookup_get_icon_name
+-polkit_backend_action_lookup_get_details
+-<SUBSECTION Standard>
+-POLKIT_BACKEND_ACTION_LOOKUP
+-POLKIT_BACKEND_IS_ACTION_LOOKUP
+-POLKIT_BACKEND_TYPE_ACTION_LOOKUP
+-polkit_backend_action_lookup_get_type
+-POLKIT_BACKEND_ACTION_LOOKUP_GET_IFACE
+-</SECTION>
+-
+-<SECTION>
+-<FILE>polkitbackendlocalauthority</FILE>
+-<TITLE>PolkitBackendLocalAuthority</TITLE>
+-PolkitBackendLocalAuthority
+-PolkitBackendLocalAuthorityClass
+-<SUBSECTION Standard>
+-POLKIT_BACKEND_LOCAL_AUTHORITY
+-POLKIT_BACKEND_IS_LOCAL_AUTHORITY
+-POLKIT_BACKEND_TYPE_LOCAL_AUTHORITY
+-polkit_backend_local_authority_get_type
+-POLKIT_BACKEND_LOCAL_AUTHORITY_CLASS
+-POLKIT_BACKEND_IS_LOCAL_AUTHORITY_CLASS
+-POLKIT_BACKEND_LOCAL_AUTHORITY_GET_CLASS
+-</SECTION>
+-
+-<SECTION>
+-<FILE>polkitbackendinteractiveauthority</FILE>
+-<TITLE>PolkitBackendInteractiveAuthority</TITLE>
+-PolkitBackendInteractiveAuthority
+-PolkitBackendInteractiveAuthorityClass
+-polkit_backend_interactive_authority_get_admin_identities
+-polkit_backend_interactive_authority_check_authorization_sync
+-<SUBSECTION Standard>
+-POLKIT_BACKEND_INTERACTIVE_AUTHORITY
+-POLKIT_BACKEND_IS_INTERACTIVE_AUTHORITY
+-POLKIT_BACKEND_TYPE_INTERACTIVE_AUTHORITY
+-polkit_backend_interactive_authority_get_type
+-POLKIT_BACKEND_INTERACTIVE_AUTHORITY_CLASS
+-POLKIT_BACKEND_IS_INTERACTIVE_AUTHORITY_CLASS
+-POLKIT_BACKEND_INTERACTIVE_AUTHORITY_GET_CLASS
+-</SECTION>
+-
+ <SECTION>
+ <FILE>polkitagentsession</FILE>
+ <TITLE>PolkitAgentSession</TITLE>
+diff --git a/docs/polkit/polkit-1.types b/docs/polkit/polkit-1.types
+index b1e13cc..6354d12 100644
+--- a/docs/polkit/polkit-1.types
++++ b/docs/polkit/polkit-1.types
+@@ -16,15 +16,6 @@ polkit_authorization_result_get_type
+ polkit_temporary_authorization_get_type
+ polkit_permission_get_type
+ 
+-polkit_backend_authority_get_type
+-polkit_backend_interactive_authority_get_type
+-polkit_backend_local_authority_get_type
+-polkit_backend_action_lookup_get_type
+-polkit_backend_action_pool_get_type
+-polkit_backend_session_monitor_get_type
+-polkit_backend_config_source_get_type
+-polkit_backend_local_authorization_store_get_type
+-
+ polkit_agent_session_get_type
+ polkit_agent_listener_get_type
+ polkit_agent_text_listener_get_type
+diff --git a/src/polkitbackend/Makefile.am b/src/polkitbackend/Makefile.am
+index b91cafa..cb25a6b 100644
+--- a/src/polkitbackend/Makefile.am
++++ b/src/polkitbackend/Makefile.am
+@@ -16,18 +16,7 @@ INCLUDES =                                                      \
+         -D_REENTRANT                                            \
+         $(NULL)
+ 
+-lib_LTLIBRARIES=libpolkit-backend-1.la
+-
+-libpolkit_backend_1includedir=$(includedir)/polkit-1/polkitbackend
+-
+-libpolkit_backend_1include_HEADERS =                        		\
+-	polkitbackend.h							\
+-	polkitbackendtypes.h						\
+-	polkitbackendauthority.h					\
+-	polkitbackendinteractiveauthority.h				\
+-	polkitbackendlocalauthority.h					\
+-	polkitbackendactionlookup.h					\
+-        $(NULL)
++noinst_LTLIBRARIES=libpolkit-backend-1.la
+ 
+ libpolkit_backend_1_la_SOURCES =                                   			\
+ 	$(BUILT_SOURCES)								\

@@ -1,0 +1,5 @@
+usr/include/polkit-1/polkit/
+usr/lib/*/libpolkit-gobject*.a
+usr/lib/*/libpolkit-gobject*.so
+usr/lib/*/pkgconfig/polkit-gobject*.pc
+usr/share/gir-1.0/Polkit-1.0.gir

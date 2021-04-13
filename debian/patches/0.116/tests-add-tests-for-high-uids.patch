@@ -1,0 +1,106 @@
+From: =?utf-8?q?Zbigniew_J=C4=99drzejewski-Szmek?= <zbyszek@in.waw.pl>
+Date: Mon, 3 Dec 2018 11:20:34 +0100
+Subject: tests: add tests for high uids
+
+Modified by Marc Deslauriers for polkit 105
+
+(cherry picked from commit b534a10727455409acd54018a9c91000e7626126)
+---
+ test/data/etc/group                                |  1 +
+ test/data/etc/passwd                               |  2 ++
+ .../localauthority/10-test/com.example.pkla        | 13 +++++++
+ .../polkitbackendlocalauthoritytest.c              | 41 +++++++++++++++++++++-
+ 4 files changed, 56 insertions(+), 1 deletion(-)
+
+diff --git a/test/data/etc/group b/test/data/etc/group
+index 12ef328..b9acab9 100644
+--- a/test/data/etc/group
++++ b/test/data/etc/group
+@@ -5,3 +5,4 @@ john:x:500:
+ jane:x:501:
+ sally:x:502:
+ henry:x:503:
++highuid2:x:4000000000:
+diff --git a/test/data/etc/passwd b/test/data/etc/passwd
+index 8544feb..5cf14a5 100644
+--- a/test/data/etc/passwd
++++ b/test/data/etc/passwd
+@@ -3,3 +3,5 @@ john:x:500:500:John Done:/home/john:/bin/bash
+ jane:x:501:501:Jane Smith:/home/jane:/bin/bash
+ sally:x:502:502:Sally Derp:/home/sally:/bin/bash
+ henry:x:503:503:Henry Herp:/home/henry:/bin/bash
++highuid1:x:2147483648:2147483648:The first high uid:/home/highuid1:/sbin/nologin
++highuid2:x:4000000000:4000000000:An example high uid:/home/example:/sbin/nologin
+diff --git a/test/data/etc/polkit-1/localauthority/10-test/com.example.pkla b/test/data/etc/polkit-1/localauthority/10-test/com.example.pkla
+index bc64c5e..a35f9a3 100644
+--- a/test/data/etc/polkit-1/localauthority/10-test/com.example.pkla
++++ b/test/data/etc/polkit-1/localauthority/10-test/com.example.pkla
+@@ -12,3 +12,16 @@ ResultAny=no
+ ResultInactive=auth_self
+ ResultActive=yes
+ 
++[User john can do this]
++Identity=unix-user:john
++Action=net.company.john_action
++ResultAny=no
++ResultInactive=auth_self
++ResultActive=yes
++
++[User highuid2 can do this]
++Identity=unix-user:highuid2
++Action=net.company.highuid2_action
++ResultAny=no
++ResultInactive=auth_self
++ResultActive=yes
+diff --git a/test/polkitbackend/polkitbackendlocalauthoritytest.c b/test/polkitbackend/polkitbackendlocalauthoritytest.c
+index 617c254..b0bfefe 100644
+--- a/test/polkitbackend/polkitbackendlocalauthoritytest.c
++++ b/test/polkitbackend/polkitbackendlocalauthoritytest.c
+@@ -226,7 +226,46 @@ struct auth_context check_authorization_test_data [] = {
+   {"unix-user:jane", TRUE, TRUE, "com.example.awesomeproduct.bar",
+       POLKIT_IMPLICIT_AUTHORIZATION_UNKNOWN,
+       POLKIT_IMPLICIT_AUTHORIZATION_AUTHORIZED},
+-
++  /* highuid1 is not a member of group 'users', see test/data/etc/group
++   * group_membership_with_non_member(highuid22) */
++  {"unix-user:highuid2", TRUE, TRUE, "com.example.awesomeproduct.foo",
++      POLKIT_IMPLICIT_AUTHORIZATION_UNKNOWN,
++      POLKIT_IMPLICIT_AUTHORIZATION_UNKNOWN},
++  /* highuid2 is not a member of group 'users', see test/data/etc/group
++   * group_membership_with_non_member(highuid21) */
++  {"unix-user:highuid2", TRUE, TRUE, "com.example.awesomeproduct.foo",
++      POLKIT_IMPLICIT_AUTHORIZATION_UNKNOWN,
++      POLKIT_IMPLICIT_AUTHORIZATION_UNKNOWN},
++  /* highuid1 is not a member of group 'users', see test/data/etc/group
++   * group_membership_with_non_member(highuid24) */
++  {"unix-user:2147483648", TRUE, TRUE, "com.example.awesomeproduct.foo",
++      POLKIT_IMPLICIT_AUTHORIZATION_UNKNOWN,
++      POLKIT_IMPLICIT_AUTHORIZATION_UNKNOWN},
++  /* highuid2 is not a member of group 'users', see test/data/etc/group
++   * group_membership_with_non_member(highuid23) */
++  {"unix-user:4000000000", TRUE, TRUE, "com.example.awesomeproduct.foo",
++      POLKIT_IMPLICIT_AUTHORIZATION_UNKNOWN,
++      POLKIT_IMPLICIT_AUTHORIZATION_UNKNOWN},
++  /* john is authorized to do this, see com.example.pkla
++   * john_action */
++  {"unix-user:john", TRUE, TRUE, "net.company.john_action",
++      POLKIT_IMPLICIT_AUTHORIZATION_UNKNOWN,
++      POLKIT_IMPLICIT_AUTHORIZATION_AUTHORIZED},
++  /* only john is authorized to do this, see com.example.pkla
++   * jane_action */
++  {"unix-user:jane", TRUE, TRUE, "net.company.john_action",
++      POLKIT_IMPLICIT_AUTHORIZATION_UNKNOWN,
++      POLKIT_IMPLICIT_AUTHORIZATION_UNKNOWN},
++  /* highuid2 is authorized to do this, see com.example.pkla
++   * highuid2_action */
++  {"unix-user:highuid2", TRUE, TRUE, "net.company.highuid2_action",
++      POLKIT_IMPLICIT_AUTHORIZATION_UNKNOWN,
++      POLKIT_IMPLICIT_AUTHORIZATION_AUTHORIZED},
++  /* only highuid2 is authorized to do this, see com.example.pkla
++   * highuid1_action */
++  {"unix-user:highuid1", TRUE, TRUE, "net.company.highuid2_action",
++      POLKIT_IMPLICIT_AUTHORIZATION_UNKNOWN,
++      POLKIT_IMPLICIT_AUTHORIZATION_UNKNOWN},
+   {NULL},
+ };
+ 

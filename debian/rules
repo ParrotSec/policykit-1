@@ -1,0 +1,49 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+
+%:
+	dh $@ --with gir
+
+DPKG_GENSYMBOLS_CHECK_LEVEL=4
+export DPKG_GENSYMBOLS_CHECK_LEVEL
+
+ifeq (linux,$(DEB_HOST_ARCH_OS))
+  SYSTEMD_CONFIG_FLAG = --enable-systemd
+else
+  SYSTEMD_CONFIG_FLAG = --disable-systemd
+endif
+
+override_dh_auto_configure:
+	dh_auto_configure -- \
+		--enable-gtk-doc \
+		--enable-man-pages \
+		--enable-introspection \
+		$(SYSTEMD_CONFIG_FLAG) \
+		--disable-examples
+
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	# on buildds we can't rely on actually having a system bus
+	dbus-run-session -- sh -c 'DBUS_SYSTEM_BUS_ADDRESS=$$DBUS_SESSION_BUS_ADDRESS make check'
+endif
+
+override_dh_install:
+	# on Debian use sudo group; on Ubuntu, also allow the admin group for
+	# historical reasons
+	if dpkg-vendor --is ubuntu; then \
+	    /bin/echo -e "[Configuration]\nAdminIdentities=unix-group:sudo;unix-group:admin" > debian/tmp/etc/polkit-1/localauthority.conf.d/51-ubuntu-admin.conf; \
+	elif dpkg-vendor --is debian; then \
+	    /bin/echo -e "[Configuration]\nAdminIdentities=unix-group:sudo" > debian/tmp/etc/polkit-1/localauthority.conf.d/51-debian-sudo.conf; \
+	elif dpkg-vendor --is parrot; then \
+	    /bin/echo -e "[Configuration]\nAdminIdentities=unix-group:sudo" > debian/tmp/etc/polkit-1/localauthority.conf.d/51-parrot-sudo.conf; \
+	fi
+	find debian/tmp -name '*.la' -print -delete
+	dh_install
+
+override_dh_missing:
+	dh_missing --fail-missing
+
+override_dh_installsystemd:
+	dh_installsystemd --no-start --restart-after-upgrade

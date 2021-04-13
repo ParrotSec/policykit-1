@@ -1,0 +1,5 @@
+usr/include/polkit-1/polkitagent/
+usr/lib/*/libpolkit-agent*.a
+usr/lib/*/libpolkit-agent*.so
+usr/lib/*/pkgconfig/polkit-agent*.pc
+usr/share/gir-1.0/PolkitAgent-1.0.gir

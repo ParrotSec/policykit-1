@@ -1,0 +1,21 @@
+From: Jan Rybar <jrybar@redhat.com>
+Date: Thu, 9 Aug 2018 16:46:38 +0200
+Subject: Possible resource leak found by static analyzer
+
+Origin: upstream, 0.116, commit:542c6ec832919df6a74e16aba574adaeebe35e08
+---
+ src/polkitagent/polkitagentlistener.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/polkitagent/polkitagentlistener.c b/src/polkitagent/polkitagentlistener.c
+index 2bfda2d..0003851 100644
+--- a/src/polkitagent/polkitagentlistener.c
++++ b/src/polkitagent/polkitagentlistener.c
+@@ -440,6 +440,7 @@ polkit_agent_listener_register_with_options (PolkitAgentListener      *listener,
+           server->thread_initialization_error = NULL;
+           g_thread_join (server->thread);
+           server_free (server);
++          server = NULL;
+           goto out;
+         }
+     }

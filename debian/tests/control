@@ -1,0 +1,7 @@
+Tests: cli
+Depends: policykit-1
+Restrictions: isolation-container
+
+Tests: cli-root
+Depends: policykit-1
+Restrictions: isolation-container, needs-root

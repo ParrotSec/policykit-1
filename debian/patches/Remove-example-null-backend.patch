@@ -1,0 +1,80 @@
+From: Simon McVittie <smcv@debian.org>
+Date: Thu, 4 Jul 2019 14:30:29 +0100
+Subject: Remove example null backend
+
+There's no point in this now that we've removed the ability to extend
+polkit.
+
+Signed-off-by: Simon McVittie <smcv@debian.org>
+---
+ configure.ac             |  1 -
+ docs/polkit/overview.xml | 34 ----------------------------------
+ src/Makefile.am          |  2 +-
+ 3 files changed, 1 insertion(+), 36 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index abfdd1f..22b9a19 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -447,7 +447,6 @@ src/polkitagent/Makefile
+ src/polkitd/Makefile
+ src/programs/Makefile
+ src/examples/Makefile
+-src/nullbackend/Makefile
+ docs/version.xml
+ docs/extensiondir.xml
+ docs/Makefile
+diff --git a/docs/polkit/overview.xml b/docs/polkit/overview.xml
+index 8ddb34c..9251579 100644
+--- a/docs/polkit/overview.xml
++++ b/docs/polkit/overview.xml
+@@ -91,38 +91,4 @@
+       information on standard output.
+     </para>
+   </chapter>
+-
+-  <chapter id="polkit-extending">
+-    <title>Extending polkit</title>
+-    <para>
+-      polkit exports a number of extension points to
+-      replace/customize behavior of the polkit daemon. Note that
+-      all extensions run with super user privileges in the same
+-      process as the polkit daemon.
+-    </para>
+-    <para>
+-      The polkit daemons loads extensions
+-      from the <filename>&extensiondir;</filename> directory. See
+-      the <link linkend="gio-Extension-Points">GIO Extension Point
+-        documentation</link> for more information about the extension
+-      system used by polkit.
+-    </para>
+-    <para>
+-      The following extension points are currently defined by
+-      polkit:
+-    </para>
+-
+-    <formalpara>
+-      <title>POLKIT_BACKEND_AUTHORITY_EXTENSION_POINT_NAME</title>
+-      <para>
+-        Allows replacing the Authority – the entity responsible for
+-        making authorization decisions. Implementations of this
+-        extension point must be derived from the
+-        PolkitBackendAuthority class. See
+-        the <filename>src/nullbackend/</filename> directory in the
+-        polkit sources for an example.
+-      </para>
+-    </formalpara>
+-
+-  </chapter>
+ </part>
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 28c7bfa..3380fb2 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -1,5 +1,5 @@
+ 
+-SUBDIRS = polkit polkitbackend polkitagent polkitd nullbackend programs
++SUBDIRS = polkit polkitbackend polkitagent polkitd programs
+ 
+ if BUILD_EXAMPLES
+ SUBDIRS += examples

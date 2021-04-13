@@ -1,0 +1,951 @@
+policykit-1 (0.105-30+parrot1) rolling; urgency=medium
+
+  * Import new version from Kali.
+  * Add Parrot-specific local authority for sudo user.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 14 Apr 2021 01:02:15 +0200
+
+policykit-1 (0.105-30+kali1) kali-dev; urgency=medium
+
+  * Update Maintainer field
+  * Update Vcs-* fields
+  * Add GitLab's CI configuration file
+  * Configure git-buildpackage for Kali
+  * pkexec: Preserve QT_QPA_PLATFORMTHEME and QT_SCALE_FACTOR in environment
+
+ -- Arnaud Rebillout <arnaudr@kali.org>  Wed, 24 Mar 2021 18:56:26 +0700
+
+policykit-1 (0.105-30) unstable; urgency=medium
+
+  [ Helmut Grohne ]
+  * Annotate Build-Depends: dbus <!nocheck> (Closes: #980998)
+
+ -- Simon McVittie <smcv@debian.org>  Thu, 04 Feb 2021 13:56:09 +0000
+
+policykit-1 (0.105-29) unstable; urgency=medium
+
+  * Add symlink for polkit-agent-helper-1 after the move to /usr/libexec.
+    If a process still has an old copy of libpolkit-agent-1.so.0 loaded, it
+    will fail to find the binary at the new location. So create a symlink to
+    prevent authentication failures on upgrades. (Closes: #965210)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 03 Aug 2020 11:05:29 +0200
+
+policykit-1 (0.105-28) unstable; urgency=medium
+
+  [ TANIGUCHI Takaki ]
+  * postinst: Fix polkit-agent-helper-1 path
+
+  [ Michael Biebl ]
+  * Fix polkitd path in polkit.service (Closes: #965164)
+  * Use --restart-after-upgrade.
+    With debhelper 13.1, --no-start will disable --restart-after-upgrade.
+    Since we want the service to be restarted on upgrades, request that
+    explicitly.
+  * Remove old maintscript migration code from pre-oldstable
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 17 Jul 2020 10:49:51 +0200
+
+policykit-1 (0.105-27) unstable; urgency=medium
+
+  * Switch to /usr/libexec now that it is allowed by debian policy
+  * Bump debhelper-compat to 13
+  * Bump Standards-Version to 4.5.0
+  * Try harder to look up the right localization.
+    Fixes out-of-bounds read in _localize. (Closes: #956223)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 17 Jul 2020 00:50:43 +0200
+
+policykit-1 (0.105-26) unstable; urgency=medium
+
+  [ Mark Hindley ]
+  * Depend on new virtual packages default-logind and logind
+    (Closes: #923240)
+
+  [ Simon McVittie ]
+  * Apply most changes from upstream release 0.116
+    - d/p/0.116/Elaborate-message-printed-by-polkit-when-disconnecting-fr.patch,
+      d/p/0.116/Error-message-raised-on-every-systemctl-start-in-emergenc.patch:
+      Reduce messages to stderr from polkit agents, in particular when using
+      "systemctl reboot" on a ssh connection or when using "systemctl start"
+      in systemd emergency mode
+    - d/p/0.116/Fix-a-critical-warning-on-calling-polkit_permission_new_s.patch:
+      Fix critical warnings when calling polkit_permission_new_sync() with
+      no D-Bus system bus
+    - d/p/0.116/Possible-resource-leak-found-by-static-analyzer.patch:
+      Fix a potential use-after-free in polkit agents
+    - d/p/0.116/pkttyagent-PolkitAgentTextListener-leaves-echo-tty-disabl.patch:
+      Re-enable echo if the tty agent is killed by SIGINT or SIGTERM
+      or suspended with SIGTSTP
+  * Add more bug fixes backported from earlier upstream releases
+    - d/p/0.108/PolkitAgent-Avoid-crashing-if-initializing-the-server-obj.patch:
+      Fix a segfault when a library user like flatpak attempts to register
+      a polkit agent with no system bus available (Closes: #923046)
+    - d/p/0.111/Add-a-FIXME-to-polkitprivate.h.patch:
+      Make it more obvious that polkitprivate.h was never intended to be API
+    - d/p/0.114/polkitpermission-Fix-a-memory-leak-on-authority-changes.patch:
+      Fix a memory leak
+    - d/p/0.113/PolkitSystemBusName-Retrieve-both-pid-and-uid.patch:
+      Avoid a use of the deprecated polkit_unix_process_new()
+  * d/*.symbols: Add Build-Depends-Package metadata
+  * d/policykit-1.lintian-overrides: Override systemd unit false positives.
+    The systemd unit is only for on-demand D-Bus activation, and is not
+    intended to be started during boot, so an [Install] section and a
+    parallel LSB init script are not necessary.
+  * Stop building libpolkit-backend as a shared library.
+    Its API was never declared stable before upstream removed it in
+    0.106. Nothing in Debian depended on it, except for polkitd itself,
+    which now links the same code statically.
+    This is a step towards being able to use the current upstream release of
+    polkit and patch in the old localauthority backend as an alternative to
+    the JavaScript backend, instead of using the old 0.105 codebase and
+    patching in essentially every change except the JavaScript backend,
+    which is becoming unmanageable.
+    - Remove the example null backend, which is pointless now that we've
+      removed the ability to extend polkit.
+    - Remove obsolete conffile 50-nullbackend.conf on upgrade
+    - Remove the directory that previously contained 50-nullbackend.conf
+      after upgrading or removing policykit-1
+    - Remove obsolete dh_makeshlibs override for the null backend
+  * d/policykit-1.bug-control: Add systemd, elogind versions to bug reports.
+    reportbug doesn't currently seem to interpret
+    "Depends: default-logind | logind" as implying that it should include
+    the version number of the package that Provides logind in bug reports.
+    Workaround for #934472.
+  * Change the policykit-1 package from Architecture: any to
+    Architecture: linux-any, and remove the consolekit [!linux-any]
+    dependency. consolekit is no longer available in any Debian or
+    debian-ports architecture, even those for non-Linux kernels.
+    (Closes: #918446)
+  * Standards-Version: 4.4.0 (no changes required)
+  * Switch to debhelper-compat 12
+    - d/control: Add ${misc:Pre-Depends}
+  * Switch to dh_missing and abort on uninstalled files
+    (patch taken from experimental, thanks to Michael Biebl)
+
+ -- Simon McVittie <smcv@debian.org>  Sun, 11 Aug 2019 19:09:35 +0100
+
+policykit-1 (0.105-25) unstable; urgency=medium
+
+  * Team upload
+  * Add tests-add-tests-for-high-uids.patch
+    - Patch from upstream modified by Ubuntu to test high UID fix
+  * Compare PolkitUnixProcess uids for temporary authorizations.
+    - Fix temporary auth hijacking via PID reuse and non-atomic fork
+      (CVE-2019-6133) (Closes: #918985)
+
+ -- Jeremy Bicha <jbicha@debian.org>  Tue, 15 Jan 2019 11:11:58 -0500
+
+policykit-1 (0.105-24) unstable; urgency=medium
+
+  * Allow uid of -1 for a PolkitUnixProcess.
+    Revert an overzealous change from the previous security fix that caused
+    a critical to be logged when trying to set the uid property to -1 (the
+    default value).
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 15 Jan 2019 08:05:52 +0000
+
+policykit-1 (0.105-23) unstable; urgency=high
+
+  * Allow negative uids/gids in PolkitUnixUser and Group objects.
+    Fixes a vulnerability in PolicyKit that allows a user with a uid greater
+    than INT_MAX to successfully execute arbitrary polkit actions.
+    (CVE-2018-19788, Closes: #915332)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 07 Dec 2018 19:55:58 +0100
+
+policykit-1 (0.105-22) unstable; urgency=medium
+
+  * Move D-Bus policy file to /usr/share/dbus-1/system.d/
+    To better support stateless systems with an empty /etc, the old location
+    in /etc/dbus-1/system.d/ should only be used for local admin changes.
+    Package provided D-Bus policy files are supposed to be installed in
+    /usr/share/dbus-1/system.d/.
+    This is supported since dbus 1.9.18.
+  * Remove obsolete conffile
+    /etc/dbus-1/system.d/org.freedesktop.PolicyKit1.conf on upgrades
+  * Bump Standards-Version to 4.2.1
+  * Remove Breaks for versions older than oldstable
+  * Stop masking polkit.service during the upgrade process.
+    This is no longer necessary with the D-Bus policy file being installed
+    in /usr/share/dbus-1/system.d/. (Closes: #902474)
+  * Use dh_installsystemd to restart polkit.service after an upgrade.
+    This replaces a good deal of hand-written maintscript code.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 27 Nov 2018 20:17:44 +0100
+
+policykit-1 (0.105-21) unstable; urgency=medium
+
+  * Remove --no-parallel now that parallel builds (hopefully) work.
+    Thanks to Adrian Bunk for spotting this.
+  * Refresh patches via gbp pq
+  * Use one patch per upstream commit for easier metadata round-trips
+  * Sync up src/polkitagent/polkitagenthelper-pam.c with 0.114
+    - d/p/0.111/Fix-a-memory-leak.patch:
+      Fix a memory leak when PAM authentication fails
+    - d/p/0.113/Remove-a-redundant-assignment.patch:
+      Fix a potential compiler warning
+    - d/p/master/Fix-multi-line-pam-text-info.patch:
+      Split into d/p/0.106/agenthelper-pam-Fix-newline-trimming-code.patch,
+      d/p/0.114/Fix-multi-line-pam-text-info.patch,
+      d/p/0.114/Refactor-send_to_helper-usage.patch
+  * d/p/03_polkitunixsession_sessionid_from_display.patch:
+    Replace with functionally identical
+    d/p/0.114/Support-polkit-session-agent-running-outside-user-session.patch
+    as applied upstream
+  * d/watch: Use https
+  * d/watch: Download upstream PGP signatures
+  * debian/upstream/signing-key.asc: Add public keys for Ray Strode,
+    Miloslav Trmac, David Zeuthen
+  * d/gbp.conf: Merge upstream tags into the upstream branch
+  * Add myself to Uploaders
+  * d/gbp.conf: Set patch-numbers to false to match current practice
+  * d/p/0.115/Fix-CVE-2018-1116-Trusting-client-supplied-UID.patch:
+    Backport the security-significant part of 0.115 (CVE-2018-1116)
+    (Closes: #903563)
+  * d/libpolkit-gobject-1-0.symbols: Update for new semi-private ABI
+  * d/rules: Skip build-time tests if DEB_BUILD_OPTIONS=nocheck
+  * Standards-Version: 4.1.5 (no changes required)
+  * Set Rules-Requires-Root to no
+
+ -- Simon McVittie <smcv@debian.org>  Wed, 11 Jul 2018 09:29:32 +0100
+
+policykit-1 (0.105-20) unstable; urgency=medium
+
+  * Team upload
+  * d/p/0.108/build-Fix-.gir-generation-for-parallel-make.patch:
+    Add patch from upstream to fix parallel builds (Closes: #894205)
+
+ -- Simon McVittie <smcv@debian.org>  Tue, 27 Mar 2018 13:50:28 +0100
+
+policykit-1 (0.105-19) unstable; urgency=medium
+
+  * debian/copyright: Use https URL for Format:
+  * Update Vcs-* links for move to salsa.debian.org.
+  * Fix typos in patch descriptions.
+    Fixes lintian's spelling-error-in-patch-description complaints.
+  * Move to debhelper compat level 10.
+    Remove explicit dh-autoreconf, it's now done by default.
+  * Bump Standards-Version to 4.1.3
+  * Add autopkgtest.
+    This covers the pkaction and pkcheck CLI tools.
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 26 Mar 2018 21:42:28 +0200
+
+policykit-1 (0.105-18) unstable; urgency=medium
+
+  * Team upload.
+  * master/Add-gettext-support-for-.policy-files.patch: Backport from master:
+    Add .loc and .its files so that gettext can be used to translate policy
+    files. Some upstreams, particularly those that are switching to meson,
+    expect these files to be present so that their PK policy files can be
+    translated. (Closes: #863207)
+
+ -- Iain Lane <laney@debian.org>  Wed, 24 May 2017 11:21:35 +0100
+
+policykit-1 (0.105-17) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * Use https:// for the upstream homepage.
+  * Update Vcs-Browser to use cgit.
+  * Rename the systemd service unit to polkit.service. It is now based on what
+    was added upstream in 0.106.
+
+  [ Simon McVittie ]
+  * Build-depend on intltool instead of relying on gtk-doc-tools'
+    dependency (Closes: #837846)
+
+  [ Martin Pitt ]
+  * Use PAM's common-session-noninteractive modules for pkexec instead of
+    common-session. The latter also runs pam_systemd (the only difference
+    normally) which is a no-op under the classic session-centric
+    D-BUS/graphical login model (as it won't start a new one if it is already
+    running within a logind session), but very expensive when using
+    dbus-user-session and being called from a service that runs outside the
+    PAM session. This causes long delays in e. g. gnome-settings-daemon's
+    backlight helpers. (LP: #1626651)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 21 Oct 2016 15:44:57 +0200
+
+policykit-1 (0.105-16) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * Drop obsolete Breaks from pre-wheezy.
+  * Use gir addon instead of calling dh_girepository manually.
+  * Run wrap-and-sort -ast.
+  * Drop explicit Build-Depends on gir1.2-glib-2.0. This dependency is already
+    pulled in via libgirepository1.0-dev.
+
+  [ Martin Pitt ]
+  * Add fallback if agent is not running in a logind session. This fixes
+    polkit with dbus-user-session. Thanks Sebastien Bacher for the patch!
+  * Bump Standards-Version to 3.9.8 (no changes necessary).
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 25 Jul 2016 14:32:23 +0200
+
+policykit-1 (0.105-15) unstable; urgency=medium
+
+  * Generate tight inter-package dependencies.
+    This ensures that everything from the same source package is upgraded in
+    lockstep. (Closes: #817998)
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 14 Apr 2016 13:57:13 +0200
+
+policykit-1 (0.105-14.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix FTBFS on non-linux/non-systemd. (Closes: #798769)
+
+ -- Adam Borowski <kilobyte@angband.pl>  Thu, 14 Jan 2016 06:28:38 +0100
+
+policykit-1 (0.105-14) unstable; urgency=medium
+
+  * debian/policykit-1.preinst: Use systemctl unmask instead of direct symlink
+    removal for consistency.
+  * Fix handling of multi-line helper output. Thanks Dariusz Gadomski! Patch
+    backported from upstream master. (LP: #1510824)
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 23 Nov 2015 11:38:00 +0100
+
+policykit-1 (0.105-13) unstable; urgency=medium
+
+  * debian/policykit-1.{pre,pos}inst: Temporarily mask polkitd.service while
+    policykit-1 is unpackaged but not yet configured. During that time we
+    don't yet have our D-Bus policy in /etc so that polkitd cannot work yet.
+    This can be dropped once the D-Bus policy moves to /usr.
+    (Closes: #794723, LP: #1447654)
+
+ -- Martin Pitt <mpitt@debian.org>  Wed, 21 Oct 2015 08:11:22 +0200
+
+policykit-1 (0.105-12) unstable; urgency=medium
+
+  * Team upload
+  * Replace 03_complete_session.patch with a change from upstream
+    which seems like a more correct solution for LP#445303, LP#649939
+  * 05_revert-admin-identities-unix-group-wheel.patch: remove confusing
+    staff -> desktop_admin_r change in a man page (desktop_admin_r looks
+    vaguely like a SELinux role but is actually being used as a group);
+    keep only the actual functional change. This matches the syntactically
+    different but functionally similar change in experimental.
+  * 09_pam_environment.patch: replace with the version that went upstream.
+  * Annotate remaining patches with a bit more information.
+    They are:
+    - 00git_fix_memleak.patch, 00git_invalid_object_paths.patch,
+      00git_type_registration.patch, 04_get_cwd.patch,
+      07_set-XAUTHORITY-environment-variable-if-unset.patch,
+      08_deprecate_racy_APIs.patch, 09_pam_environment.patch,
+      cve-2013-4288.patch: either backports from upstream, or already
+      applied upstream, and not discussed further here.
+    - 01_pam_polkit.patch: use Debian's common-* infrastructure,
+      plus pam_env to get the global environment and locale.
+      Debian-specific.
+    - 02_gettext.patch: Use gettext to translate .policy files at
+      runtime, allowing for Ubuntu-style language packs.
+      Debian-specific (mainly for Ubuntu's benefit, really).
+    - 05_revert-admin-identities-unix-group-wheel.patch: Debian does
+      not use the "wheel" group like Red Hat derivatives do;
+      treat uid 0 as the administrative identity instead.
+      Debian-specific.
+    - 06_systemd-service.patch: hook up the systemd service in
+      debian/polkitd.service.
+      Not forwarded: obsoleted by an upstream change in 0.106,
+      commit 2995085.
+  * Re-order patch series to put upstream changes first, sorted by version
+    in which they went upstream, and put them in subdirectories by version
+  * Add patches from 0.113 to fix heap corruption CVE-2015-3255
+    (Closes: #766860) and local authenticated denial of service
+    CVE-2015-4625 (Closes: #796134)
+  * Add numerous other bug-fix patches from 0.113
+    - work around bugs in older versions of libpam-systemd when using
+      su or similar (Closes: #772125)
+    - treat background processes as part of the same uid's active GUI
+      session if they have one (Closes: #779988)
+    - fix some memory leaks (Closes: #775158, LP: #1417637)
+  * Add backported public API polkit_system_bus_name_get_user_sync() to
+    symbols file
+  * Fix FTBFS with dpkg-buildpackage -A by only installing files into
+    policykit-1 in per-arch builds
+  * Run tests with a session bus pretending to be the system bus,
+    so they can pass in a buildd environment
+
+ -- Simon McVittie <smcv@debian.org>  Fri, 11 Sep 2015 09:48:00 +0100
+
+policykit-1 (0.105-11) unstable; urgency=medium
+
+  * Add 00git_invalid_object_paths.patch: backend: Handle invalid object paths
+    in RegisterAuthenticationAgent (CVE-2015-3218, Closes: #787932)
+  * policykit-1.postinst: Reload systemd before restarting polkitd.service, to
+    avoid "Warning: polkitd.service changed on disk". (Closes: #791397)
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 10 Jul 2015 13:03:33 +0200
+
+policykit-1 (0.105-10) unstable; urgency=medium
+
+  * Add 00git_type_registration.patch: Use GOnce for interface type
+    registration. Fixes frequent udisks segfault (LP: #1236510).
+  * Add 00git_fix_memleak.patch: Fix memory leak in EnumerateActions call
+    results handler. (LP: #1417637)
+
+ -- Martin Pitt <mpitt@debian.org>  Wed, 08 Jul 2015 12:15:41 +0200
+
+policykit-1 (0.105-9) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * policykit-1.postinst: Don't kill polkitd under systemd, but properly
+    restart it. This avoids killing it shortly after systemd tries to
+    bus-activate it on installation. (LP: #1447654)
+
+  [ Michael Biebl ]
+  * Build against libsystemd instead of the old libsystemd-login compat
+    library. (Closes: #779756)
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 08 Jul 2015 02:10:58 +0200
+
+policykit-1 (0.105-8) unstable; urgency=medium
+
+  * Rebuild against libsystemd0. This drops the last remaining dependency to
+    libsystemd-login0. (Closes: #771281)
+  * Bump Standards-Version to 3.9.6 (no changes necessary).
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 28 Nov 2014 10:07:46 +0100
+
+policykit-1 (0.105-7) unstable; urgency=medium
+
+  * Team upload.
+  * Install typelib files into MA libdir.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Thu, 25 Sep 2014 13:56:15 +0200
+
+policykit-1 (0.105-6.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Use dh-autoreconf in build to support new architectures
+
+ -- Wookey <wookey@debian.org>  Thu, 10 Jul 2014 00:15:28 +0100
+
+policykit-1 (0.105-6) unstable; urgency=medium
+
+  * Team upload.
+  * debian/control: Update Homepage URL
+  * debian/control: Add a Breaks against gdm3 (<< 3.8.4-7~) to ensure it
+    registers a logind session properly (Closes: #745983)
+
+ -- Laurent Bigonville <bigon@debian.org>  Thu, 22 May 2014 19:31:58 +0200
+
+policykit-1 (0.105-5) unstable; urgency=medium
+
+  * Team upload.
+  * Enable systemd support on linux architectures
+  * debian/control: Bump Standards-Version to 3.9.5 (no further changes)
+  * debian/control: Use canonical VCS-* URL's
+
+ -- Laurent Bigonville <bigon@debian.org>  Sun, 04 May 2014 12:40:59 +0200
+
+policykit-1 (0.105-4) unstable; urgency=low
+
+  * Acknowledge non-maintainer upload for CVE-2013-4288.
+  * Also cherry-pick the upstream commit which deprecates the racy APIs.
+  * debian/patches/09_pam_environment.patch: set process environment from
+    pam_getenvlist().
+  * debian/patches/01_pam_polkit.patch: adjust patch to invoke pam_env, so our
+    global settings from /etc/environment are applied correctly.
+  * The two changes above fix pkexec to properly export the pam environment.
+    Thanks Steve Langasek for the patch. (Closes: #692340)
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 15 Oct 2013 18:34:24 +0200
+
+policykit-1 (0.105-3+nmu1) unstable; urgency=high
+
+  * Non-maintainer upload by the Security Team.
+  * Fix cve-2013-4288: race condition in pkcheck.c (closes: #723717).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Mon, 14 Oct 2013 00:08:43 +0000
+
+policykit-1 (0.105-3) unstable; urgency=low
+
+  * 07_set-XAUTHORITY-environment-variable-if-unset.patch: Set XAUTHORITY
+    environment variable to its default value $HOME/.Xauthority if unset.
+    Some display managers, like KDM, do not set the XAUTHORITY variable, so
+    starting graphical applications via pkexec was broken in those
+    environments. (Closes: #671497)
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 20 Dec 2012 18:55:14 +0100
+
+policykit-1 (0.105-2) unstable; urgency=low
+
+  * Change the permissions of /etc/polkit-1/localauthority to 700, this
+    directory is not supposed to be readable by everyone.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 17 Dec 2012 17:02:06 +0100
+
+policykit-1 (0.105-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/watch: Update URL, the tarballs are hosted on freedesktop.org now.
+  * Update symbols file for libpolkit-gobject-1-0 and libpolkit-agent-1-0.
+  * Update debian/copyright using the machine-readable copyright format 1.0.
+  * Bump Standards-Version to 3.9.3.
+  * Bump Build-Depends on debhelper to (>= 9).
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 24 Apr 2012 21:06:04 +0200
+
+policykit-1 (0.104-2) unstable; urgency=low
+
+  * debian/control: Add Build-Depends on libglib2.0-doc and libgtk-3-doc for
+    proper cross-references in the gtk-doc API documentation.
+  * Install systemd service file for polkitd.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 11 Feb 2012 23:48:29 +0100
+
+policykit-1 (0.104-1) unstable; urgency=low
+
+  * New upstream release.
+    - Add support for netgroups. (LP: #724052)
+  * debian/rules: Disable systemd support, continue to work with ConsokeKit.
+  * 05_revert-admin-identities-unix-group-wheel.patch: Refresh to apply
+    cleanly.
+  * debian/libpolkit-gobject-1-0.symbols: Add new symbols from this new
+    release.
+  * debian/rules: Do not let test failures fail the build. The new test suite
+    also runs a test against the system D-BUS/ConsoleKit, which can't work on
+    buildds.
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 06 Jan 2012 12:28:54 +0100
+
+policykit-1 (0.103-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/control: Change section of gir1.2-polkit-1.0 to introspection.
+  * 05_revert-admin-identities-unix-group-wheel.patch: Revert upstream change
+    to make group wheel the default admin identity since we already use group
+    sudo resp. group admin for that.
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 09 Dec 2011 00:48:17 +0100
+
+policykit-1 (0.102-2) unstable; urgency=low
+
+  * 02_gettext.patch: Explicitly #include <locale.h> to fix non-optimized
+    build. Thanks Ivan Krasilnikov for pointing this out.
+  * debian/rules: When building on Ubuntu, also consider the "sudo" group as
+    administrator, for compatibility with Debian and sudo itself. Keep "admin"
+    for existing systems. (LP: #893842)
+  * Convert to Multi-Arch and dh compat 9. Thanks Daniel Schaal for the
+    patch! (Closes: #636196)
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 25 Nov 2011 07:44:09 +0100
+
+policykit-1 (0.102-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/patches/00git_fix_proc_race.patch: Removed, merged upstream.
+  * debian/patches/04_ignore_quilt_po.patch: Removed, merged upstream.
+  * debian/patches/03_complete_session.patch: Refreshed.
+  * debian/patches/04_get_cwd.patch: Use g_get_current_dir() to determine the
+    current working directory. This fixes another PATH_MAX related FTBFS on
+    hurd. Thanks Emilio Pozuelo Monfort for the patch. (Closes: #623017)
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 02 Aug 2011 03:17:20 +0200
+
+policykit-1 (0.101-4) unstable; urgency=high
+
+  Urgency high due to security fix.
+
+  * Add 00git_fix_proc_race.patch: Avoid /proc race conditions when checking
+    privileges for pkexec. Patch taken from
+    https://bugzilla.redhat.com/show_bug.cgi?id=692922, now also landed in
+    upstream git. [CVE-2011-1485]
+  * debian/libpolkit-gobject-1-0.symbols: Update for new symbols.
+  * Add 04_ignore_quilt_po.patch: Ignore .po/ for intltool. This avoids build
+    failures if quilt patches change files with translatable strings. Thanks
+    to Kees Cook for the patch!
+
+ -- Martin Pitt <mpitt@debian.org>  Wed, 20 Apr 2011 12:11:38 +0200
+
+policykit-1 (0.101-3) unstable; urgency=low
+
+  * debian/control
+    - Add Depends on gir1.2-polkit-1.0 (= ${binary:Version}) to
+      libpolkit-gobject-1-dev and libpolkit-agent-1-dev to comply with the
+      updated GObject introspection policy.
+    - Bump Standards-Version to 3.9.2. No further changes.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 10 Apr 2011 20:34:03 +0200
+
+policykit-1 (0.101-2) unstable; urgency=low
+
+  * Upload to unstable.
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 25 Mar 2011 02:19:51 +0100
+
+policykit-1 (0.101-1) experimental; urgency=low
+
+  * New upstream release.
+  * Update patches
+    - Drop debian/patches/04_test_signalfd.patch, merged upstream.
+    - Refresh other patches to apply cleanly.
+  * debian/libpolkit-gobject-1-0.symbols
+    - Add polkit_authorization_result_get_dismissed.
+  * debian/control
+    - Bump Build-Depends on libglib2.0-dev to (>= 2.28.0).
+  * debian/rules
+    - Don't build example programs.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 03 Mar 2011 23:50:17 +0100
+
+policykit-1 (0.100-1) experimental; urgency=low
+
+  * New upstream release.
+  * Refresh debian/patches/03_complete_session.patch.
+  * Replace debian/patches/04_test_signalfd.patch with a patch that was merged
+    upstream. This also allows to drop debian/patches/99_autoreconf.patch.
+  * Switch from cdbs to dh.
+  * Bump debhelper compatibility level to 8.
+  * Install documentation using debian/policykit-1.docs.
+  * Enable gobject introspection support.
+    - Add Build-Depends on libgirepository1.0-dev (>= 0.9.12),
+      gobject-introspection (>= 0.9.12-4~) and gir1.2-glib-2.0.
+    - Add package gir1.2-polkit-1.0 containing the typelib files.
+    - Install gir files in libpolkit-agent-1-dev.install and
+      libpolkit-gobject-1-dev.install.
+    - Call dh_girepository in debian/rules.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 23 Feb 2011 19:51:17 +0100
+
+policykit-1 (0.99-3) unstable; urgency=low
+
+  * Upload to unstable.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 10 Feb 2011 19:21:36 +0100
+
+policykit-1 (0.99-2) experimental; urgency=low
+
+  [ Michael Biebl ]
+  * Merge sudo group changes from unstable branch.
+
+  [ Martin Pitt ]
+  * debian/rules: Use dpkg-vendor instead of lsb_release. Drop lsb-release
+    build dependency.
+  * Add 04_test_signalfd.patch: Allow building on Non-Linux platforms without
+    signalfd(). (Closes: #602476)
+  * Add 99_autoreconf.patch: Pick up autoreconf changes from previous patch.
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 06 Dec 2010 16:28:11 +0100
+
+policykit-1 (0.99-1) experimental; urgency=low
+
+  [ Michael Biebl ]
+  * New upstream release.
+  * debian/patches/00git-fix-error-freeing.patch
+    - Remove, fixed upstream.
+  * debian/patches/00git-pkexec-information-disclosure.patch
+    - Remove, merged upstream.
+  * debian/control
+    - Drop Build-Depends on libeggdbus-1-dev.
+    - Bump Build-Depends on libglib2.0-dev to (>= 2.25.12) for GDBus.
+  * Switch to source format 3.0 (quilt).
+    - Add debian/source/format.
+    - Drop Build-Depends on quilt.
+    - Remove /usr/share/cdbs/1/rules/patchsys-quilt.mk from debian/rules.
+    - Remove debian/README.source.
+
+  [ Robert Ancell ]
+  * Add debian/patches/02_gettext.patch: Use gettext for translations in
+    .policy files if they specify a gettext domain.
+
+  [ James Westby ]
+  * Add debian/patches/03_complete_session.patch: Fix the race that leads to
+    the password box disappearing, but the dialog remaining.
+
+  [ Martin Pitt ]
+  * debian/rules: Set DPKG_GENSYMBOLS_CHECK_LEVEL to 4 to point out outdated
+    .symbols files more strongly.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 04 Nov 2010 17:27:09 -0400
+
+policykit-1 (0.96-4) unstable; urgency=low
+
+  * debian/rules
+    - When building for Debian, install a localauthority.conf.d configuration
+      file which considers "sudo" group users as administrators.
+      (Closes: #532499)
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 16 Nov 2010 23:21:50 +0100
+
+policykit-1 (0.96-3) unstable; urgency=low
+
+  * debian/control
+    - Use architecture wildcard linux-any for libselinux1-dev.
+    - Bump Standards-Version to 3.9.1.
+  * debian/policykit-1.postinst
+    - Query D-Bus to find out the correct pid of the process claiming
+      org.freedesktop.PolicyKit1. This way we do not accidentally kill the
+      wrong process when being installed in a chroot. (Closes: #595030)
+  * debian/policykit-1.prerm
+    - Stop polkitd on remove. (Closes: #595031)
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 16 Sep 2010 23:27:56 +0200
+
+policykit-1 (0.96-2) unstable; urgency=medium
+
+  * Urgency medium, just two small, but important bug fixes.
+  * Add 00git-pkexec-information-disclosure.patch: Fix information disclosure
+    vulnerability that allows an attacker to verify whether or not arbitrary
+    files exist, violating directory permissions.
+  * 00git-fix-error-freeing.patch: Fix crash when calling CheckAuthorization()
+    with an invalid PID. (LP: #540464)
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 09 Apr 2010 12:09:53 +0200
+
+policykit-1 (0.96-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/libpolkit-backend-1-0.symbols
+    - Update for new API addition.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 16 Jan 2010 00:05:48 +0100
+
+policykit-1 (0.95-1) unstable; urgency=low
+
+  * New upstream release.
+  * Remove patches
+    - debian/patches/02_dont_export_private_symbols.patch (merged upstream)
+    - debian/patches/03_path_max.patch (merged upstream)
+    - debian/patches/04-ref-authority.patch (merged upstream)
+    - debian/patches/05-pkexec-env.patch (merged upstream)
+    - debian/patches/99_autoreconf.patch (obsolete)
+  * debian/control
+    - Bump Build-Depends on libeggbus-1-dev to (>= 0.6).
+  * debian/rules
+    - The example application is no longer built by default so we don't need
+      to manually remove it anymore.
+  * debian/libpolkit-{backend,gobject}-1-0.symbols
+    - Update for new API additions.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 14 Nov 2009 05:33:34 +0100
+
+policykit-1 (0.94-6) unstable; urgency=low
+
+  * debian/policykit-1.postinst
+    - Use start-stop-daemon instead of kill+pidof to stop the running polkitd
+      daemon on upgrades.
+  * Remove our workaround for kfreebsd again now that eglibc 2.10 has entered
+    unstable. (Closes: #552605)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 09 Nov 2009 01:09:07 +0100
+
+policykit-1 (0.94-5) unstable; urgency=low
+
+  * Add debian/patches/04-ref-authority.patch: Ref the instance returned by
+    polkit_authority_get(), since the documentation says that it needs to be
+    unref'ed after usage. This fixes crashes in NetworkManager and probably
+    other programs, too. (LP: #438574, #432452, fd.o #24566)
+  * Add debian/patches/05-pkexec-env.patch: Add missing comma so that pkexec
+    saves both LANG and LANGUAGE, not LANGLANGUAGE. (Cherrypicked from trunk)
+  * Add myself to Uploaders: with Michael's consent.
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 03 Nov 2009 12:28:09 +0100
+
+policykit-1 (0.94-4) unstable; urgency=low
+
+  * debian/patches/03_path_max.patch
+    - Update patch to fix implicit pointer conversion for
+      get_current_dir_name. (Closes: #550901)
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 14 Oct 2009 14:00:40 +0200
+
+policykit-1 (0.94-3) unstable; urgency=low
+
+  * debian/patches/03_path_max.patch
+    - Fix FTBFS on hurd-i386 where PATH_MAX is not defined. (Closes:#550800)
+      Thanks to Samuel Thibault for the patch.
+  * debian/policykit-1.postinst:
+    - Kill the old polkitd daemon on upgrade, to ensure that the new version
+      will be used at the next occasion.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 13 Oct 2009 14:32:25 +0200
+
+policykit-1 (0.94-2) unstable; urgency=low
+
+  * Fix build failures on kfreebsd. Add Build-Depends on libfreebsd-dev and
+    link against -lfreebsd for sysctlnametomib.
+    When glibc 2.10 enters unstable this workaround can be removed again.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 13 Oct 2009 00:29:47 +0200
+
+policykit-1 (0.94-1) unstable; urgency=low
+
+  * Rename package to policykit-1. Upstream (at least temporarily) forked
+    the project to make it installable in parallel with policykit 0.9, until
+    all programs are ported to the new API.
+  * Drop all patches except 01_pam_polkit.patch.
+  * Refresh debian/patches/01_pam_polkit.patch.
+  * debian/control
+    - Update Build-Depends
+      + Drop libdbus-1-dev, libdbus-glib-1-dev.
+      + Add libeggdbus-1-dev (>= 0.5) and lsb-release.
+      + Bump libglib2-dev dependency to (>= 2.21.4).
+    - Update list of binary packages and their package descriptions.
+    - Drop dependency on adduser.
+    - Bump Standards-Version to 3.8.3.
+      + Add README.source which refers to the quilt documentation.
+    - Update Vcs-* fields. Package is now managed using Git and hosted on
+      git.debian.org.
+  * Update shared library structure: libpolkit-{dbus,grant} →
+    libpolkit-{agent,backend,gobject}-1.
+  * Rename policykit, policykit-doc → policykit-1, policykit-1-doc.
+  * Update and revise all *.install files.
+  * debian/rules, debian/policykit.init: Drop init script, package doesn't use
+    /var/run any more.
+  * debian/policykit-1.postinst: Don't create "polkituser" system user, it's
+    not used any more.
+  * Update watch file.
+  * debian/patches/02_dont_export_private_symbols.patch
+    - Don't export private symbols in the libraries.
+  * debian/patches/99_autoreconf.patch
+    - Update the autotools files as the previous patch also touches the build
+      system.
+  * Add symbols files for libpolkit-{agent,backend,gobject}-1 for improved
+    shlibs dependencies.
+  * debian/rules
+    - Disable introspection support.
+    - When building for Ubuntu, install a localauthority.conf.d configuration
+      file which considers "admin" group users as administrators.
+    - Don't install example application.
+  * debian/copyright
+    - Update copyright holder.
+    - License was changed to LGPL 2.1+.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 27 Sep 2009 21:35:18 +0200
+
+policykit (0.9-4) unstable; urgency=low
+
+  * Add support for /var/run being a tmpfs. (Closes: #532101)
+    - Create /var/run/PolicyKit dynamically on boot by using an init script.
+      Original patch by Martin Pitt, thanks. Updated patch to only run the
+      init script in runlevel S at priority 75.
+    - Do no longer ship /var/run/PolicyKit in the package itself.
+  * debian/control
+    - Bump Standards-Version to 3.8.1.
+  * debian/patches/04_entry_leak.patch
+    - Plug a memory leak. Patch pulled from Fedora.
+  * debian/patches/05_manpage_typo_fix.patch
+    - Fix a small typo in the polkit-auth man page. (Closes: #523565)
+  * debian/patches/06_no_inotify_or_path_max.patch
+    - Add support for systems which don't support inotify (like hurd) and
+      don't use PATH_MAX unconditionally, instead use dynamically growing
+      buffers. (Closes: #521756)
+      Patch by Samuel Thibault, thanks.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 18 Jun 2009 09:55:34 +0200
+
+policykit (0.9-3) unstable; urgency=low
+
+  * Switch patch management system to quilt.
+  * debian/control
+    - Wrap Build-Depends.
+    - Demote Recommends: policykit-gnome to Suggests. (Closes: #513758)
+    - Bump Build-Depends on debhelper to (>= 7).
+  * debian/compat
+    - Bump debhelper compat level to 7.
+  * debian/rules
+    - Include debhelper.mk before any other files as recommended by the cdbs
+      documentation.
+  * debian/patches/03_consolekit0.3-api.patch
+    - Try both the ConsoleKit 0.3 and the older 0.2 API, to work with either.
+      Patch pulled from Ubuntu.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 18 Feb 2009 17:25:52 +0100
+
+policykit (0.9-2) unstable; urgency=high
+
+  [ Simon McVittie ]
+  * Add patch committed in Fedora (although not upstream) by the upstream
+    maintainer, to allow PolicyKit to be used when CVE-2008-4311 has
+    been fixed in dbus-daemon. (Closes: #510646)
+
+  [ Michael Biebl ]
+  * debian/control
+    - Add ${misc:Depends} to all binary packages.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 07 Jan 2009 18:18:56 +0100
+
+policykit (0.9-1) unstable; urgency=low
+
+  * New upstream release. 
+  * debian/control
+    - Bump Standards-Version to 3.8.0. No further changes.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 03 Aug 2008 10:53:11 +0200
+
+policykit (0.8-2) unstable; urgency=low
+
+  * Add symbols files for libpolkit2, libpolkit-grant2 and libpolkit-dbus2. 
+  * debian/policykit.postinst
+    - Set correct permissions for all files. (Closes: #482064)
+    - Define a small helper function to apply the permissions. This makes it
+      more concise and readable.
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 23 May 2008 04:33:48 +0200
+
+policykit (0.8-1) unstable; urgency=medium
+
+  * New upstream release.
+    - SECURITY - CVE-2008-1658:
+      Fixes format string vulnerability in the grant helper. (Closes: #476615)
+  * debian/control
+    - Add Build-Depends on pkg-config.
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 18 Apr 2008 01:39:08 +0200
+
+policykit (0.7-2) unstable; urgency=low
+
+  * Upload to unstable.
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 11 Jan 2008 01:02:59 +0100
+
+policykit (0.7-1) experimental; urgency=low
+
+  * New upstream release. (Closes: #455874)
+  * debian/control
+    - Bump Standards-Version to 3.7.3. No further changes required.
+    - Add Build-Depends on libdbus-glib-1-dev (>= 0.73).
+    - Change Homepage URL to http://hal.freedesktop.org/docs/PolicyKit/.
+      (Closes: #446504)
+    - Improve package description. (Closes: #446554)
+  * debian/copyright
+    - All code is now licensed under the MIT/X11 license. Update the copyright
+      notice accordingly.
+  * debian/policykit.dirs
+    - Add the directory /var/lib/PolicyKit-public.
+  * debian/policykit.install
+    - Install the D-Bus config and service files for the PolicyKit system
+      service.
+    - Install /var/lib/misc/PolicyKit.reload.
+  * debian/rules
+    - Fix the permissions of /var/lib/misc/PolicyKit.reload.
+  * debian/policykit.postinst
+    - Use dpkg-statoverride to check for local modifications before setting
+      the SUID/SGID bits.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 20 Dec 2007 18:01:38 +0100
+
+policykit (0.6-1) experimental; urgency=low
+
+  * New upstream release.
+  * debian/control
+    - Use new "Homepage:" field to specify the upstream URL.
+    - The Vcs-* fields are now officially supported, so remove the XS- prefix.  
+    - Add a Recommends: policykit-gnome to the policykit package.
+    - Enable SELinux support by adding a Build-Depends on libselinux1-dev for
+      all supported platforms.
+  * debian/policykit.postinst
+    - Install polkit-grant-helper-pam with the correct permissions.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 03 Nov 2007 00:02:33 +0100
+
+policykit (0.5-1) experimental; urgency=low
+
+  * Initial release. (Closes: #397087)
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 02 Oct 2007 22:38:04 +0200
+

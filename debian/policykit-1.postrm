@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -e
+
+#DEBHELPER#
+
+# This can be removed after bullseye is released as stable
+for d in /etc/polkit-1/nullbackend.conf.d /etc/polkit-1; do
+    if [ -d "$d" ]; then
+        rmdir --ignore-fail-on-non-empty "$d"
+    fi
+done
+
+exit 0
