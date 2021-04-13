@@ -1,0 +1,20 @@
+
+Needed for 1.0
+--------------
+
+ - check that all public but unstable API is properly guard off with
+   I_KNOW_THIS_API_IS_SUBJECT_TO_CHANGE_ETC
+
+ - man page review / section review
+
+ - make sure library API is reasonably MT-safe
+
+ - avoid watching all name owner changes in PolkitBackendAuthority and
+   PolkitBackendServer; remove the name-owner-changed vfunc
+
+GNOME Authentication Agent
+--------------------------
+
+ - maybe expand on the notification icon so it is more detailed
+   what temporary authorizations the session has - and maybe a way
+   to only drop some of them
