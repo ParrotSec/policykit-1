@@ -60,5 +60,5 @@
 Move-D-Bus-policy-file-to-usr-share-dbus-1-system.d.patch
 Statically-link-libpolkit-backend1-into-polkitd.patch
 Remove-example-null-backend.patch
-
+CVE-2021-3560.patch
 kali/pkexec-Preserve-QT_QPA_PLATFORMTHEME-and-QT_SCALE_FACTOR.patch
