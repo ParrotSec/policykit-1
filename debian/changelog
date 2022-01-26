@@ -1,3 +1,17 @@
+policykit-1 (0.105-31+deb11u1+parrot1) parrot-security; urgency=medium
+
+  * Import Debian Security update.
+  * Patch d/rules for parrot dpkg-release.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 26 Jan 2022 16:05:34 +0100
+
+policykit-1 (0.105-31+deb11u1) bullseye-security; urgency=high
+
+  * Non-maintainer upload by the Security Team.
+  * Local Privilege Escalation in polkit's pkexec (CVE-2021-4034)
+
+ -- Salvatore Bonaccorso <carnil@debian.org>  Thu, 13 Jan 2022 20:32:03 +0100
+
 policykit-1 (0.105-31+parrot2) lts; urgency=medium
 
   * Rebuild for Parrot 5.0.
